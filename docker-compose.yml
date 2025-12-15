@@ -1,0 +1,153 @@
+# Council of AI - Docker Compose Configuration
+# Multi-service orchestration for local development
+# Author: Manus AI (Co-Founder & CTO)
+# Date: December 14, 2025
+# Version: 1.0.0
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: councilof-ai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-councilof}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-councilof_secure_pass_2025}
+      POSTGRES_DB: ${DB_NAME:-councilof_ai}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - councilof-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-councilof} -d ${DB_NAME:-councilof_ai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for rate limiting and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: councilof-ai-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-councilof_redis_pass_2025}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - councilof-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: councilof-ai-backend
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-councilof}:${DB_PASSWORD:-councilof_secure_pass_2025}@db:5432/${DB_NAME:-councilof_ai}
+      
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD:-councilof_redis_pass_2025}@redis:6379/0
+      
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-here-change-in-production}
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
+      
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      
+      # API
+      API_V1_PREFIX: /api/v1
+      
+      # Rate Limiting
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - backend_logs:/app/logs
+    networks:
+      - councilof-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # pgAdmin (Database Management UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: councilof-ai-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@councilof.ai}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin_secure_pass_2025}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - councilof-network
+    depends_on:
+      - db
+
+  # Redis Commander (Redis Management UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: councilof-ai-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-councilof_redis_pass_2025}
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    networks:
+      - councilof-network
+    depends_on:
+      - redis
+
+networks:
+  councilof-network:
+    driver: bridge
+    name: councilof-ai-network
+
+volumes:
+  postgres_data:
+    name: councilof-ai-postgres-data
+  redis_data:
+    name: councilof-ai-redis-data
+  pgadmin_data:
+    name: councilof-ai-pgadmin-data
+  backend_logs:
+    name: councilof-ai-backend-logs

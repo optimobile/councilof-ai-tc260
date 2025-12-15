@@ -1,8 +1,8 @@
 """
-TC260 Verification Engine
-Council of AI - Safety Verification Platform
+TC260 Verification Engine - ALL 32 MODULES
+Council of AI - EU260 Safety Verification Platform
 
-Orchestrates all TC260 risk category modules and generates comprehensive verification reports.
+Orchestrates all 32 TC260 risk category modules for comprehensive AI safety verification.
 """
 
 import time
@@ -18,190 +18,191 @@ from tc260.schemas import (
     TC260Config
 )
 
-from tc260.modules import (
-    BiasDiscriminationModule,
-    PrivacyViolationModule,
-    MisinformationModule,
-    HarmfulContentModule,
-    IntellectualPropertyModule
-)
+# Import all 32 modules
+from tc260.modules.tc260_01_bias import BiasDiscriminationModule
+from tc260.modules.tc260_02_privacy import PrivacyViolationModule
+from tc260.modules.tc260_03_misinfo import MisinformationModule
+from tc260.modules.tc260_04_harmful import HarmfulContentModule
+from tc260.modules.tc260_05_ip import IntellectualPropertyModule
+from tc260.modules.tc260_06_manipulation_and_deception import ManipulationDeceptionModule
+from tc260.modules.tc260_07_autonomous_weapons import AutonomousWeaponsModule
+from tc260.modules.tc260_08_economic_disruption import EconomicDisruptionModule
+from tc260.modules.tc260_09_social_engineering import SocialEngineeringModule
+from tc260.modules.tc260_10_deepfakes_and_synthetic_media import DeepfakesSyntheticMediaModule
+from tc260.modules.tc260_11_environmental_impact import EnvironmentalImpactModule
+from tc260.modules.tc260_12_labor_displacement import LaborDisplacementModule
+from tc260.modules.tc260_13_surveillance_and_tracking import SurveillanceTrackingModule
+from tc260.modules.tc260_14_algorithmic_bias import AlgorithmicBiasModule
+from tc260.modules.tc260_15_data_poisoning import DataPoisoningModule
+from tc260.modules.tc260_16_model_theft import ModelTheftModule
+from tc260.modules.tc260_17_adversarial_attacks import AdversarialAttacksModule
+from tc260.modules.tc260_18_prompt_injection import PromptInjectionModule
+from tc260.modules.tc260_19_output_manipulation import OutputManipulationModule
+from tc260.modules.tc260_20_hallucination import HallucinationModule
+from tc260.modules.tc260_21_toxicity import ToxicityModule
+from tc260.modules.tc260_22_child_safety import ChildSafetyModule
+from tc260.modules.tc260_23_self_harm import SelfHarmModule
+from tc260.modules.tc260_24_substance_abuse import SubstanceAbuseModule
+from tc260.modules.tc260_25_gambling import GamblingModule
+from tc260.modules.tc260_26_financial_fraud import FinancialFraudModule
+from tc260.modules.tc260_27_medical_misinformation import MedicalMisinformationModule
+from tc260.modules.tc260_28_legal_compliance import LegalComplianceModule
+from tc260.modules.tc260_29_ethical_violations import EthicalViolationsModule
+from tc260.modules.tc260_30_transparency import TransparencyModule
+from tc260.modules.tc260_31_accountability import AccountabilityModule
+from tc260.modules.tc260_32_human_oversight import HumanOversightModule
 
 
 class TC260Engine:
     """
-    Main verification engine that coordinates all TC260 risk category modules.
+    Complete TC260/EU260 verification engine with all 32 risk category modules.
     """
     
-    # Map of category IDs to module classes
+    # Registry of all 32 modules
     MODULE_REGISTRY = {
         'TC260-01': BiasDiscriminationModule,
         'TC260-02': PrivacyViolationModule,
         'TC260-03': MisinformationModule,
         'TC260-04': HarmfulContentModule,
         'TC260-05': IntellectualPropertyModule,
+        'TC260-06': ManipulationDeceptionModule,
+        'TC260-07': AutonomousWeaponsModule,
+        'TC260-08': EconomicDisruptionModule,
+        'TC260-09': SocialEngineeringModule,
+        'TC260-10': DeepfakesSyntheticMediaModule,
+        'TC260-11': EnvironmentalImpactModule,
+        'TC260-12': LaborDisplacementModule,
+        'TC260-13': SurveillanceTrackingModule,
+        'TC260-14': AlgorithmicBiasModule,
+        'TC260-15': DataPoisoningModule,
+        'TC260-16': ModelTheftModule,
+        'TC260-17': AdversarialAttacksModule,
+        'TC260-18': PromptInjectionModule,
+        'TC260-19': OutputManipulationModule,
+        'TC260-20': HallucinationModule,
+        'TC260-21': ToxicityModule,
+        'TC260-22': ChildSafetyModule,
+        'TC260-23': SelfHarmModule,
+        'TC260-24': SubstanceAbuseModule,
+        'TC260-25': GamblingModule,
+        'TC260-26': FinancialFraudModule,
+        'TC260-27': MedicalMisinformationModule,
+        'TC260-28': LegalComplianceModule,
+        'TC260-29': EthicalViolationsModule,
+        'TC260-30': TransparencyModule,
+        'TC260-31': AccountabilityModule,
+        'TC260-32': HumanOversightModule,
     }
     
     def __init__(self, config: Optional[TC260Config] = None):
-        """
-        Initialize the TC260 verification engine.
-        
-        Args:
-            config: TC260 configuration (uses defaults if None)
-        """
+        """Initialize TC260 engine with all 32 modules"""
         self.config = config or TC260Config()
         self.modules: Dict[str, Any] = {}
         self._initialize_modules()
     
     def _initialize_modules(self):
-        """Initialize all enabled TC260 modules"""
-        for category_id, module_class in self.MODULE_REGISTRY.items():
-            if category_id in self.config.enabled_categories:
-                self.modules[category_id] = module_class(
-                    threshold=self.config.default_threshold
-                )
+        """Load all enabled modules"""
+        for category_id in self.config.enabled_categories:
+            if category_id in self.MODULE_REGISTRY:
+                module_class = self.MODULE_REGISTRY[category_id]
+                self.modules[category_id] = module_class(self.config.default_threshold)
     
     def verify(self, request: VerificationRequest) -> VerificationReport:
         """
-        Verify AI-generated content against TC260 standards.
+        Perform comprehensive TC260/EU260 verification.
         
         Args:
-            request: Verification request with content and parameters
+            request: Verification request with content and options
             
         Returns:
-            Complete verification report with risk assessments
+            Complete verification report with all risk assessments
         """
         start_time = time.time()
-        request_id = f"ver_{uuid.uuid4().hex[:12]}"
+        request_id = str(uuid.uuid4())
         
         # Determine which categories to test
         categories_to_test = request.categories or list(self.modules.keys())
-        categories_to_test = [c for c in categories_to_test if c in self.modules]
         
-        # Run verification across all categories
+        # Run verification (parallel or sequential)
         if self.config.parallel_processing:
-            risk_assessments = self._verify_parallel(
-                content=request.content,
-                categories=categories_to_test,
-                context=request.context
-            )
+            assessments = self._verify_parallel(request.content, categories_to_test, request.context)
         else:
-            risk_assessments = self._verify_sequential(
-                content=request.content,
-                categories=categories_to_test,
-                context=request.context
-            )
+            assessments = self._verify_sequential(request.content, categories_to_test, request.context)
         
         # Calculate overall metrics
-        processing_time_ms = int((time.time() - start_time) * 1000)
-        overall_score = self._calculate_overall_score(risk_assessments)
-        overall_status = self._determine_overall_status(risk_assessments, request.threshold)
+        overall_score = sum(a.risk_score for a in assessments) / len(assessments) if assessments else 0.0
         
-        categories_passed = sum(1 for r in risk_assessments if r.passed)
-        categories_failed = sum(1 for r in risk_assessments if not r.passed and r.risk_score >= request.threshold)
-        categories_warning = sum(1 for r in risk_assessments if not r.passed and r.risk_score < request.threshold)
+        categories_passed = sum(1 for a in assessments if a.passed)
+        categories_failed = sum(1 for a in assessments if not a.passed and a.risk_score >= request.threshold)
+        categories_warning = sum(1 for a in assessments if not a.passed and a.risk_score < request.threshold)
+        
+        # Determine overall status
+        if categories_failed > 0:
+            overall_status = VerificationStatus.FAIL
+        elif categories_warning > 0:
+            overall_status = VerificationStatus.WARNING
+        else:
+            overall_status = VerificationStatus.PASS
+        
+        processing_time_ms = int((time.time() - start_time) * 1000)
         
         return VerificationReport(
             request_id=request_id,
             overall_score=overall_score,
             overall_status=overall_status,
-            categories_tested=len(risk_assessments),
+            categories_tested=len(assessments),
             categories_passed=categories_passed,
             categories_failed=categories_failed,
             categories_warning=categories_warning,
-            risk_assessments=risk_assessments,
+            risk_assessments=assessments,
             processing_time_ms=processing_time_ms
         )
     
-    def _verify_sequential(
-        self, 
-        content: str, 
-        categories: List[str],
-        context: Optional[Dict[str, Any]] = None
-    ) -> List[RiskAssessment]:
-        """Run verification sequentially across categories"""
-        risk_assessments = []
-        
-        for category_id in categories:
-            module = self.modules[category_id]
-            assessment = module.analyze(content, context)
-            risk_assessments.append(assessment)
-        
-        return risk_assessments
-    
-    def _verify_parallel(
-        self, 
-        content: str, 
-        categories: List[str],
-        context: Optional[Dict[str, Any]] = None
-    ) -> List[RiskAssessment]:
-        """Run verification in parallel across categories"""
-        risk_assessments = []
+    def _verify_parallel(self, content: str, categories: List[str], context: Optional[Dict[str, Any]]) -> List[RiskAssessment]:
+        """Run verification in parallel using thread pool"""
+        assessments = []
         
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
-            # Submit all verification tasks
             future_to_category = {
-                executor.submit(self.modules[cat_id].analyze, content, context): cat_id
-                for cat_id in categories
+                executor.submit(self.modules[cat].analyze, content, context): cat
+                for cat in categories if cat in self.modules
             }
             
-            # Collect results as they complete
             for future in as_completed(future_to_category):
                 try:
                     assessment = future.result(timeout=self.config.timeout_seconds)
-                    risk_assessments.append(assessment)
+                    assessments.append(assessment)
                 except Exception as e:
-                    category_id = future_to_category[future]
-                    print(f"Error verifying {category_id}: {e}")
+                    category = future_to_category[future]
+                    print(f"Error in {category}: {e}")
         
-        # Sort by category ID for consistent ordering
-        risk_assessments.sort(key=lambda x: x.category_id)
-        
-        return risk_assessments
+        return sorted(assessments, key=lambda x: x.category_id)
     
-    def _calculate_overall_score(self, assessments: List[RiskAssessment]) -> float:
-        """Calculate weighted average risk score across all assessments"""
-        if not assessments:
-            return 0.0
+    def _verify_sequential(self, content: str, categories: List[str], context: Optional[Dict[str, Any]]) -> List[RiskAssessment]:
+        """Run verification sequentially"""
+        assessments = []
         
-        # Weight by confidence
-        total_weighted_score = sum(a.risk_score * a.confidence for a in assessments)
-        total_confidence = sum(a.confidence for a in assessments)
+        for category in categories:
+            if category in self.modules:
+                try:
+                    assessment = self.modules[category].analyze(content, context)
+                    assessments.append(assessment)
+                except Exception as e:
+                    print(f"Error in {category}: {e}")
         
-        return total_weighted_score / total_confidence if total_confidence > 0 else 0.0
+        return assessments
     
-    def _determine_overall_status(
-        self, 
-        assessments: List[RiskAssessment],
-        threshold: float
-    ) -> VerificationStatus:
-        """Determine overall verification status"""
-        if not assessments:
-            return VerificationStatus.PASS
-        
-        # If any critical findings, fail
-        critical_findings = [a for a in assessments if a.risk_score >= 80]
-        if critical_findings:
-            return VerificationStatus.FAIL
-        
-        # If any assessments exceed threshold, fail
-        failed_assessments = [a for a in assessments if not a.passed]
-        if failed_assessments:
-            return VerificationStatus.FAIL
-        
-        # If any warnings (score > 50 but < threshold)
-        warning_assessments = [a for a in assessments if 50 <= a.risk_score < threshold]
-        if warning_assessments:
-            return VerificationStatus.WARNING
-        
-        return VerificationStatus.PASS
-    
-    def get_module_info(self) -> Dict[str, Dict[str, str]]:
-        """Get information about all loaded modules"""
+    def get_module_info(self) -> Dict[str, Any]:
+        """Get information about loaded modules"""
         return {
-            cat_id: {
-                'category_id': module.category_id,
-                'category_name': module.category_name,
-                'threshold': module.threshold
+            "total_modules": len(self.MODULE_REGISTRY),
+            "loaded_modules": len(self.modules),
+            "enabled_categories": self.config.enabled_categories,
+            "modules": {
+                cat_id: {
+                    "name": module.category_name,
+                    "threshold": module.threshold
+                }
+                for cat_id, module in self.modules.items()
             }
-            for cat_id, module in self.modules.items()
         }
